@@ -1,3 +1,5 @@
+// social-network\convex\auth.config.ts
+
 export default {
   providers: [
     {
