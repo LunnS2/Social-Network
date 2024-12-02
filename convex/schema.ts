@@ -11,4 +11,9 @@ export default defineSchema({
     tokenIdentifier: v.string(),
     isOnline: v.boolean(),
   }).index("by_tokenIdentifier", ["tokenIdentifier"]),
+  posts: defineTable({
+    user:v.string(),
+    title:v.string(),
+    content:v.string(),
+  })
 });
