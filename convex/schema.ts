@@ -12,7 +12,7 @@ export default defineSchema({
     isOnline: v.boolean(),
   }).index("by_tokenIdentifier", ["tokenIdentifier"]),
   posts: defineTable({
-    user:v.string(),
+    creator:v.string(),
     title:v.string(),
     content:v.string(),
   })
