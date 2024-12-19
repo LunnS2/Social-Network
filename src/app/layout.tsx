@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import ConvexClientProvider from "@/providers/convex-client-provider";
 import AuthButton from "@/components/auth-button";
+import SideBar from "@/components/side-bar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -41,6 +42,7 @@ export default function RootLayout({
           >
             <ConvexClientProvider>
               {children}
+              <SideBar />
               <AuthButton />
             </ConvexClientProvider>
           </ThemeProvider>

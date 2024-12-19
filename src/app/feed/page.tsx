@@ -1,3 +1,7 @@
+// social-network\src\app\feed\page.tsx
+
+"use client";
+
 import { useConvexAuth } from "convex/react";
 import React from "react";
 
