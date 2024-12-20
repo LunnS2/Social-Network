@@ -5,10 +5,7 @@ import React from "react";
 
 const AuthButton = () => {
   return (
-    <header className="absolute top-0 right-0 p-2">
-      <SignedOut>
-        <SignInButton />
-      </SignedOut>
+    <header className="flex items-center justify-center">
       <SignedIn>
         <UserButton />
       </SignedIn>

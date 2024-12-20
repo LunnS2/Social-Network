@@ -8,6 +8,7 @@ export const createPost = mutation({
     creator:v.id("users"),
     title:v.string(),
     content:v.string(),
+    description: v.string(),
     createdAt: v.number(),
   },
 
@@ -34,6 +35,7 @@ export const createPost = mutation({
       creator: args.creator,
       title: args.title,
       content: args.content,
+      description: args.description,
       createdAt: createdAt,
     });
   },

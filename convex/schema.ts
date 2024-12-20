@@ -15,6 +15,7 @@ export default defineSchema({
     creator:v.string(),
     title:v.string(),
     content:v.string(),
+    description:v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_creator", ["creator"]),
   likes: defineTable({

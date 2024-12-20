@@ -43,7 +43,6 @@ export default function RootLayout({
             <ConvexClientProvider>
               {children}
               <SideBar />
-              <AuthButton />
             </ConvexClientProvider>
           </ThemeProvider>
         </ClerkProvider>
