@@ -9,7 +9,7 @@ import AuthButton from "./auth-button";
 
 const SideBar = () => {
   return (
-    <aside className="fixed left-0 top-0 w-20 h-screen bg-card shadow-lg flex flex-col items-center py-6 transition-all duration-300 ease-in-out transform hover:w-28 md:w-24 md:hover:w-28">
+    <aside className="fixed left-0 top-0 w-24 h-screen bg-card shadow-lg flex flex-col items-center py-6">
       {/* Navigation Links */}
       <nav className="flex flex-col space-y-8">
         <NavLink href="/" icon={<SmileIcon />} label="Welcome" />
@@ -29,5 +29,3 @@ const SideBar = () => {
 };
 
 export default SideBar;
-
-
