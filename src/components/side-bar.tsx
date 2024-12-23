@@ -4,7 +4,7 @@
 
 import React from "react";
 import NavLink from "./nav-link";
-import { NewspaperIcon, SmileIcon } from "lucide-react";
+import { NewspaperIcon, SmileIcon, SquarePlus } from "lucide-react";
 import AuthButton from "./auth-button";
 
 const SideBar = () => {
@@ -13,6 +13,7 @@ const SideBar = () => {
       {/* Navigation Links */}
       <nav className="flex flex-col space-y-8">
         <NavLink href="/" icon={<SmileIcon />} label="Welcome" />
+        <NavLink href="create-post" icon={<SquarePlus />} label="Post" />
         <NavLink href="feed" icon={<NewspaperIcon />} label="Feed" />
         {/* Add more links as needed */}
       </nav>
