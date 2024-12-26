@@ -14,7 +14,7 @@ export default defineSchema({
   posts: defineTable({
     creator:v.string(),
     title:v.string(),
-    content:v.string(),
+    content:v.optional(v.id("_storage")),
     description:v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_creator", ["creator"]),

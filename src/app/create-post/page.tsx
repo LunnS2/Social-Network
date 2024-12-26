@@ -2,9 +2,10 @@
 
 "use client";
 
-import { useConvexAuth, useQuery, useMutation } from "convex/react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import React, { useState } from "react";
 import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
 
 const CreatePost = () => {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -12,39 +13,66 @@ const CreatePost = () => {
   // Fetch user data
   const currentUser = useQuery(api.users.getMe);
   const createPost = useMutation(api.posts.createPost);
+  const generateUploadUrl = useMutation(api.posts.generateUploadUrl);
 
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [description, setDescription] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
 
   const handleCreatePost = async () => {
-    if (!currentUser?._id) {
-      console.error("User ID is undefined. Cannot create post.");
+    if (!currentUser?._id || !title || !file) {
+      console.error("Missing required fields.");
       return;
     }
 
-    if (!title || !content || !description) return;
-
     try {
+      // Upload media file
+      const url = await generateUploadUrl();
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload media.");
+      }
+
+      const { storageId } = await response.json();
+
+      // Create post with uploaded media
       await createPost({
         creator: currentUser._id,
         title,
-        content,
+        content: storageId,
         description,
         createdAt: Date.now(),
       });
-      setShowModal(false);
+
       setTitle("");
-      setContent("");
       setDescription("");
+      setFile(null);
     } catch (error) {
       console.error("Failed to create post:", error);
     }
   };
 
   if (isLoading || !currentUser) {
-    return <div className="flex justify-center items-center min-h-screen text-foreground">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen text-foreground">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -82,12 +110,19 @@ const CreatePost = () => {
               onChange={(e) => setDescription(e.target.value)}
               className="w-full p-2 mb-4 border border-border rounded-md"
             />
+            <input
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFileChange}
+              className="w-full p-2 mb-4 border border-border rounded-md"
+            />
             <div className="flex justify-end space-x-4">
               <button
                 className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition"
                 onClick={handleCreatePost}
+                disabled={uploading}
               >
-                Submit
+                {uploading ? "Uploading..." : "Submit"}
               </button>
               <button
                 className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-muted hover:text-muted-foreground transition"

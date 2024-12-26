@@ -3,11 +3,15 @@
 import { ConvexError, v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+export const generateUploadUrl = mutation(async (ctx) => {
+  return await ctx.storage.generateUploadUrl();
+});
+
 export const createPost = mutation({
   args: {
-    creator:v.id("users"),
-    title:v.string(),
-    content:v.string(),
+    creator: v.id("users"),
+    title: v.string(),
+    content: v.id("_storage"),
     description: v.string(),
     createdAt: v.number(),
   },
@@ -15,7 +19,7 @@ export const createPost = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new ConvexError("You must be logged in to create a post.")
+      throw new ConvexError("You must be logged in to create a post.");
     }
 
     const user = await ctx.db
@@ -25,11 +29,11 @@ export const createPost = mutation({
       )
       .unique();
 
-      if (!user || user._id !== args.creator) {
-        throw new ConvexError("Invalid creator ID.");
-      }
+    if (!user || user._id !== args.creator) {
+      throw new ConvexError("Invalid creator ID.");
+    }
 
-      const createdAt = Date.now();
+    const createdAt = Date.now();
 
     await ctx.db.insert("posts", {
       creator: args.creator,
@@ -47,7 +51,6 @@ export const getUserPosts = query({
   },
 
   handler: async (ctx, args) => {
-
     const userPosts = await ctx.db
       .query("posts")
       .withIndex("by_creator", (q) => q.eq("creator", args.creator))
@@ -57,13 +60,11 @@ export const getUserPosts = query({
   },
 });
 
-
 export const getAllPosts = query({
   handler: async (ctx) => {
-    
     const allPosts = await ctx.db.query("posts").collect();
 
-    // Posts sorted by creation date 
+    // Posts sorted by creation date
     return allPosts.sort((a, b) => b.createdAt - a.createdAt);
   },
 });
