@@ -27,7 +27,17 @@ const Feed = () => {
             <li key={post._id} className="p-4 border border-border rounded-md">
               <h2 className="text-xl font-semibold text-primary mb-2">{post.title}</h2>
               <p className="text-muted-foreground mb-4">{post.description}</p>
-              <p className="text-foreground">{post.content}</p>
+              {post.contentUrl && (
+                <div className="mb-4">
+                  {post.contentUrl.endsWith(".mp4") ? (
+                    <video controls className="w-full rounded-md">
+                      <source src={post.contentUrl} type="video/mp4" />
+                    </video>
+                  ) : (
+                    <img src={post.contentUrl} alt={post.title} className="w-full rounded-md" />
+                  )}
+                </div>
+              )}
               <p className="text-sm text-muted-foreground mt-4">
                 Posted on {new Date(post.createdAt).toLocaleDateString()}
               </p>

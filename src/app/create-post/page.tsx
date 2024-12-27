@@ -17,7 +17,6 @@ const CreatePost = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -36,6 +35,7 @@ const CreatePost = () => {
     }
 
     try {
+      setUploading(true);
       // Upload media file
       const url = await generateUploadUrl();
       const response = await fetch(url, {
@@ -49,12 +49,14 @@ const CreatePost = () => {
       }
 
       const { storageId } = await response.json();
+      const contentUrl = `${url}/${storageId}`;
 
       // Create post with uploaded media
       await createPost({
         creator: currentUser._id,
         title,
         content: storageId,
+        contentUrl,
         description,
         createdAt: Date.now(),
       });
@@ -62,8 +64,11 @@ const CreatePost = () => {
       setTitle("");
       setDescription("");
       setFile(null);
+      setShowModal(false);
     } catch (error) {
       console.error("Failed to create post:", error);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -97,12 +102,6 @@ const CreatePost = () => {
               onChange={(e) => setTitle(e.target.value)}
               className="w-full p-2 mb-4 border border-border rounded-md"
             />
-            <textarea
-              placeholder="Content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="w-full p-2 mb-4 border border-border rounded-md"
-            ></textarea>
             <input
               type="text"
               placeholder="Description"
@@ -139,3 +138,4 @@ const CreatePost = () => {
 };
 
 export default CreatePost;
+

@@ -1,5 +1,3 @@
-// social-network\convex\posts.ts
-
 import { ConvexError, v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
@@ -11,8 +9,9 @@ export const createPost = mutation({
   args: {
     creator: v.id("users"),
     title: v.string(),
-    content: v.id("_storage"),
-    description: v.string(),
+    content: v.optional(v.id("_storage")),
+    contentUrl: v.optional(v.string()),  // Added contentUrl here
+    description: v.optional(v.string()),
     createdAt: v.number(),
   },
 
@@ -38,8 +37,9 @@ export const createPost = mutation({
     await ctx.db.insert("posts", {
       creator: args.creator,
       title: args.title,
-      content: args.content,
-      description: args.description,
+      content: args.content !== undefined ? args.content : undefined,
+      contentUrl: args.contentUrl,  // Insert contentUrl into the database
+      description: args.description || "",
       createdAt: createdAt,
     });
   },
@@ -56,7 +56,16 @@ export const getUserPosts = query({
       .withIndex("by_creator", (q) => q.eq("creator", args.creator))
       .collect();
 
-    return userPosts;
+    // Attach URLs to stored content
+    return await Promise.all(
+      userPosts.map(async (post) => {
+        if (post.content) {
+          const url = await ctx.storage.getUrl(post.content);
+          return { ...post, contentUrl: url };  // Add contentUrl dynamically
+        }
+        return post;
+      })
+    );
   },
 });
 
@@ -64,7 +73,18 @@ export const getAllPosts = query({
   handler: async (ctx) => {
     const allPosts = await ctx.db.query("posts").collect();
 
+    // Attach URLs to stored content
+    const postsWithUrls = await Promise.all(
+      allPosts.map(async (post) => {
+        if (post.content) {
+          const url = await ctx.storage.getUrl(post.content);
+          return { ...post, contentUrl: url };  // Add contentUrl dynamically
+        }
+        return post;
+      })
+    );
+
     // Posts sorted by creation date
-    return allPosts.sort((a, b) => b.createdAt - a.createdAt);
+    return postsWithUrls.sort((a, b) => b.createdAt - a.createdAt);
   },
 });

@@ -11,17 +11,21 @@ export default defineSchema({
     tokenIdentifier: v.string(),
     isOnline: v.boolean(),
   }).index("by_tokenIdentifier", ["tokenIdentifier"]),
+  
   posts: defineTable({
-    creator:v.string(),
-    title:v.string(),
-    content:v.optional(v.id("_storage")),
-    description:v.optional(v.string()),
+    creator: v.string(),
+    title: v.string(),
+    content: v.optional(v.id("_storage")),
+    contentUrl: v.optional(v.string()),
+    description: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_creator", ["creator"]),
+
   likes: defineTable({
     postId: v.string(),
     userId: v.string(),
   }).index("by_post_and_user", ["postId", "userId"]),
+
   friends: defineTable({
     userId: v.string(),
     friendId: v.string(),
