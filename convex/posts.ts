@@ -10,7 +10,7 @@ export const createPost = mutation({
     creator: v.id("users"),
     title: v.string(),
     content: v.optional(v.id("_storage")),
-    contentUrl: v.optional(v.string()),  // Added contentUrl here
+    contentUrl: v.optional(v.string()),
     description: v.optional(v.string()),
     createdAt: v.number(),
   },
@@ -38,10 +38,49 @@ export const createPost = mutation({
       creator: args.creator,
       title: args.title,
       content: args.content !== undefined ? args.content : undefined,
-      contentUrl: args.contentUrl,  // Insert contentUrl into the database
+      contentUrl: args.contentUrl,
       description: args.description || "",
       createdAt: createdAt,
     });
+  },
+});
+
+export const deletePost = mutation({
+  args: {
+    postId: v.id("posts"),
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    // Fetch the post
+    const post = await ctx.db.get(args.postId);
+    if (!post) {
+      throw new ConvexError("Post not found.");
+    }
+
+    // Ensure the user is the creator of the post
+    if (post.creator !== args.userId) {
+      throw new ConvexError("You are not authorized to delete this post.");
+    }
+
+    // Delete the post
+    await ctx.db.delete(args.postId);
+
+    // Delete associated likes
+    const likes = await ctx.db
+      .query("likes")
+      .withIndex("by_post_and_user", (q) => q.eq("postId", args.postId))
+      .collect();
+
+    for (const like of likes) {
+      await ctx.db.delete(like._id);
+    }
+
+    console.log(`Post ${args.postId} and associated likes deleted.`);
   },
 });
 
@@ -56,12 +95,11 @@ export const getUserPosts = query({
       .withIndex("by_creator", (q) => q.eq("creator", args.creator))
       .collect();
 
-    // Attach URLs to stored content
     return await Promise.all(
       userPosts.map(async (post) => {
         if (post.content) {
           const url = await ctx.storage.getUrl(post.content);
-          return { ...post, contentUrl: url };  // Add contentUrl dynamically
+          return { ...post, contentUrl: url }; 
         }
         return post;
       })
@@ -73,18 +111,16 @@ export const getAllPosts = query({
   handler: async (ctx) => {
     const allPosts = await ctx.db.query("posts").collect();
 
-    // Attach URLs to stored content
     const postsWithUrls = await Promise.all(
       allPosts.map(async (post) => {
         if (post.content) {
           const url = await ctx.storage.getUrl(post.content);
-          return { ...post, contentUrl: url };  // Add contentUrl dynamically
+          return { ...post, contentUrl: url };
         }
         return post;
       })
     );
 
-    // Posts sorted by creation date
     return postsWithUrls.sort((a, b) => b.createdAt - a.createdAt);
   },
 });
