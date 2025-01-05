@@ -30,5 +30,5 @@ export default defineSchema({
     userId: v.string(),
     friendId: v.string(),
     status: v.union(v.literal("pending"), v.literal("accepted"), v.literal("blocked")),
-  }).index("by_user", ["userId"]),
+  }).index("by_user_friend", ["userId", "friendId"]),
 });
