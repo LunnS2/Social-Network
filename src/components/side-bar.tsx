@@ -4,7 +4,7 @@
 
 import React from "react";
 import NavLink from "./nav-link";
-import { Handshake, House, NewspaperIcon, SquarePlus } from "lucide-react";
+import { Crown, Handshake, House, NewspaperIcon, SquarePlus } from "lucide-react";
 import AuthButton from "./auth-button";
 
 const SideBar = () => {
@@ -16,6 +16,7 @@ const SideBar = () => {
         <NavLink href="feed" icon={<NewspaperIcon />} label="Feed" />
         <NavLink href="create-post" icon={<SquarePlus />} label="Post" />
         <NavLink href="friendship" icon={<Handshake />} label="Frienships" />
+        <NavLink href="wall-of-fame" icon={<Crown />} label="Winner" />
         {/* Add more links as needed */}
       </nav>
 
