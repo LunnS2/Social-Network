@@ -31,4 +31,13 @@ export default defineSchema({
     friendId: v.string(),
     status: v.union(v.literal("pending"), v.literal("accepted"), v.literal("blocked")),
   }).index("by_user_friend", ["userId", "friendId"]),
+  
+  wallOfFame: defineTable({
+    postId: v.id("posts"),
+    title: v.string(),
+    contentUrl: v.optional(v.string()),
+    description: v.optional(v.string()),
+    likes: v.number(),
+    createdAt: v.number(),
+  }),
 });

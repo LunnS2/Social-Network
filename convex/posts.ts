@@ -1,3 +1,5 @@
+// social-network\convex\posts.ts
+
 import { ConvexError, v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
@@ -123,4 +125,51 @@ export const getAllPosts = query({
 
     return postsWithUrls.sort((a, b) => b.createdAt - a.createdAt);
   },
+});
+
+export const getMostLikedPost = mutation(async (ctx) => {
+  const allPosts = await ctx.db.query("posts").collect();
+  let mostLikedPost = null;
+  let maxLikes = 0;
+
+  for (const post of allPosts) {
+    const likes = await ctx.db
+      .query("likes")
+      .withIndex("by_post_and_user", (q) => q.eq("postId", post._id))
+      .collect();
+
+    if (likes.length > maxLikes) {
+      mostLikedPost = post;
+      maxLikes = likes.length;
+    }
+  }
+
+  if (mostLikedPost) {
+    await ctx.db.insert("wallOfFame", {
+      postId: mostLikedPost._id,
+      title: mostLikedPost.title,
+      contentUrl: mostLikedPost.contentUrl,
+      description: mostLikedPost.description,
+      likes: maxLikes,
+      createdAt: mostLikedPost.createdAt,
+    });
+  }
+
+  // Delete all posts and likes after determining the winner
+  for (const post of allPosts) {
+    await ctx.db.delete(post._id);
+    const likes = await ctx.db
+      .query("likes")
+      .withIndex("by_post_and_user", (q) => q.eq("postId", post._id))
+      .collect();
+
+    for (const like of likes) {
+      await ctx.db.delete(like._id);
+    }
+  }
+});
+
+export const getWallOfFame = query(async (ctx) => {
+  const wallPost = await ctx.db.query("wallOfFame").first();
+  return wallPost || null;
 });
