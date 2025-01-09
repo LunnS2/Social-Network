@@ -143,6 +143,10 @@ export const getMostLikedPost = mutation(async (ctx) => {
       maxLikes = likes.length;
     }
   }
+  const existingWallOfFameEntries = await ctx.db.query("wallOfFame").collect();
+    for (const entry of existingWallOfFameEntries) {
+      await ctx.db.delete(entry._id);
+    }
 
   if (mostLikedPost) {
     await ctx.db.insert("wallOfFame", {
