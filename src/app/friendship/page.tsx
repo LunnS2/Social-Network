@@ -1,135 +1,134 @@
-// social-network\src\app\friendship\page.tsx
-"use client";
+// social-network/src/app/friendship/page.tsx
+"use client"
 
-import { useEffect, useState } from "react";
-import { api } from "../../../convex/_generated/api";
-import { useMutation, useQuery } from "convex/react";
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { Id } from '../../../convex/_generated/dataModel';
 
-const Friendship = () => {
-  const [userId, setUserId] = useState<string>("");
-  const [search, setSearch] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false); // for loading state
-  const [statusMessage, setStatusMessage] = useState<string>(""); // for status message
+const FriendsPage = () => {
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Queries for users, friends, and pending requests
-  const users = useQuery(api.users.getUsers);
-  const friends = useQuery(api.friends.getFriends, { userId });
-  const pendingRequests = useQuery(api.friends.getPendingRequests, { userId });
-
-  // Mutations for friend actions
+  const me = useQuery(api.users.getMe);
+  const allUsers = useQuery(api.users.getUsers);
+  const friends = useQuery(api.friends.getFriends, me?._id ? { userId: me._id } : "skip");
+  const pendingRequests = useQuery(api.friends.getPendingRequests, me?._id ? { userId: me._id } : "skip");
   const sendFriendRequest = useMutation(api.friends.sendFriendRequest);
   const acceptFriendRequest = useMutation(api.friends.acceptFriendRequest);
   const removeFriend = useMutation(api.friends.removeFriend);
 
-  // Fetch current user's ID on mount (replace this with your actual logic)
-  useEffect(() => {
-    const currentUserId = "currentUserId"; // Replace with actual user ID fetching logic
-    setUserId(currentUserId);
-  }, []);
+  const filteredUsers = allUsers?.filter(user => 
+    user.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
-  // Filter users based on search input
-  const filteredUsers = search
-    ? (users || []).filter((user) =>
-        user.name?.toLowerCase().includes(search.toLowerCase())
-      )
-    : users || [];
-
-  // Helper function to handle actions (send, accept, remove)
-  const handleAction = async (action: Function, friendId: string, actionType: string) => {
+  const handleSendRequest = async (friendId: Id<"users">) => {
+    if (!me?._id) return;
     try {
-      setLoading(true);
-      setStatusMessage(""); // Reset any previous status message
-      await action({ userId, friendId });
-
-      // Display success message based on action type
-      if (actionType === "send") {
-        setStatusMessage("Friend request sent!");
-      } else if (actionType === "accept") {
-        setStatusMessage("Friend request accepted!");
-      } else if (actionType === "remove") {
-        setStatusMessage("Friend removed!");
-      }
+      await sendFriendRequest({ userId: me._id, friendId });
+      alert('Friend request sent!');
     } catch (error) {
-      setStatusMessage("An error occurred. Please try again.");
-      console.error(error);
-    } finally {
-      setLoading(false);
+      alert(error instanceof Error ? error.message : 'An error occurred');
     }
   };
 
-  // Component for rendering friend lists (Search Results, Pending Requests, Friends)
-  const FriendList = ({ title, items, actionButtonText, onAction, actionType }: any) => (
-    <div className="mb-4">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <ul>
-        {items.map((item: any) => (
-          <li key={item.friendId || item._id} className="flex justify-between mb-2">
-            <div className="flex items-center">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-10 h-10 rounded-full mr-4"
-              />
-              <span>{item.name || item.friendId}</span>
-            </div>
-            <button
-              onClick={() => onAction(item.friendId || item._id)}
-              disabled={loading} // Disable button while loading
-              className={`p-2 text-white ${actionButtonText === "Accept" ? "bg-green-500" : "bg-red-500"}`}
-            >
-              {loading ? "Processing..." : actionButtonText}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  const handleAcceptRequest = async (friendId: Id<"users">) => {
+    if (!me?._id) return;
+    try {
+      await acceptFriendRequest({ userId: me._id, friendId });
+      alert('Friend request accepted!');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'An error occurred');
+    }
+  };
+
+  const handleRemoveFriend = async (friendId: Id<"users">) => {
+    if (!me?._id) return;
+    try {
+      await removeFriend({ userId: me._id, friendId });
+      alert('Friend removed!');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'An error occurred');
+    }
+  };
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Friendship</h1>
-
-      {statusMessage && (
-        <div className="mb-4 p-2 bg-green-100 text-green-700">
-          {statusMessage}
-        </div>
-      )}
-
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold">Search Users</h2>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Friends Page</h1>
+      
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">Search Users</h2>
         <input
           type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name"
-          className="border p-2 w-full"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search for users"
+          className="border p-2 rounded mr-2 w-full"
         />
-        <FriendList
-          title="Search Results"
-          items={filteredUsers}
-          actionButtonText="Send Request"
-          onAction={(friendId: string) => handleAction(sendFriendRequest, friendId, "send")}
-          actionType="send"
-        />
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredUsers.map((user) => (
+            <div key={user._id} className="border p-4 rounded flex items-center justify-between">
+              <div className="flex items-center">
+                <img src={user.image} alt={user.name || 'User'} className="w-10 h-10 rounded-full mr-2" />
+                <span>{user.name || 'Unnamed User'}</span>
+              </div>
+              <button 
+                onClick={() => handleSendRequest(user._id)}
+                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+              >
+                Send Request
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <FriendList
-        title="Pending Requests"
-        items={pendingRequests?.filter((request: any) => request.status === "pending") || []}
-        actionButtonText="Accept"
-        onAction={(friendId: string) => handleAction(acceptFriendRequest, friendId, "accept")}
-        actionType="accept"
-      />
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">Your Friends</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {friends?.map((friend) => {
+            const friendUser = allUsers?.find(user => user._id === friend.friendId);
+            return friendUser ? (
+              <div key={friend._id} className="border p-4 rounded flex items-center justify-between">
+                <div className="flex items-center">
+                  <img src={friendUser.image} alt={friendUser.name || 'Friend'} className="w-10 h-10 rounded-full mr-2" />
+                  <span>{friendUser.name || 'Unnamed Friend'}</span>
+                </div>
+                <button 
+                  onClick={() => handleRemoveFriend(friendUser._id)}
+                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : null;
+          })}
+        </div>
+      </div>
 
-      <FriendList
-        title="Friends"
-        items={friends || []}
-        actionButtonText="Remove"
-        onAction={(friendId: string) => handleAction(removeFriend, friendId, "remove")}
-        actionType="remove"
-      />
+      <div>
+        <h2 className="text-xl font-semibold mb-2">Pending Friend Requests</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {pendingRequests?.map((request) => {
+            const requestUser = allUsers?.find(user => user._id === request.friendId);
+            return requestUser ? (
+              <div key={request._id} className="border p-4 rounded flex items-center justify-between">
+                <div className="flex items-center">
+                  <img src={requestUser.image} alt={requestUser.name || 'User'} className="w-10 h-10 rounded-full mr-2" />
+                  <span>{requestUser.name || 'Unnamed User'}</span>
+                </div>
+                <button 
+                  onClick={() => handleAcceptRequest(requestUser._id)}
+                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                >
+                  Accept
+                </button>
+              </div>
+            ) : null;
+          })}
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Friendship;
+export default FriendsPage;

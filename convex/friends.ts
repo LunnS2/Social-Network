@@ -112,3 +112,18 @@ export const getPendingRequests = query({
       .collect();
   },
 });
+
+// New query to check friendship status
+export const getFriendshipStatus = query({
+  args: { userId: v.string(), friendId: v.string() },
+  handler: async (ctx, args) => {
+    const friendship = await ctx.db
+      .query("friends")
+      .withIndex("by_user_friend", (q) => 
+        q.eq("userId", args.userId).eq("friendId", args.friendId)
+      )
+      .first();
+    
+    return friendship ? friendship.status : "not_friends";
+  },
+});
