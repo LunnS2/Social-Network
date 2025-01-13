@@ -23,7 +23,6 @@ export const sendFriendRequest = mutation({
       throw new ConvexError("You cannot send a friend request to yourself.");
     }
 
-    // Check if there's an existing friendship or pending request
     const existingRequest = await ctx.db
       .query("friends")
       .withIndex("by_user_friend", (q) => 
@@ -43,7 +42,6 @@ export const sendFriendRequest = mutation({
       }
     }
 
-    // Insert the new friend request as "pending"
     await ctx.db.insert("friends", {
       userId: args.userId,
       friendId: args.friendId,
@@ -65,10 +63,8 @@ export const acceptFriendRequest = mutation({
       throw new ConvexError("Friend request not found.");
     }
 
-    // Accept the friend request
     await ctx.db.patch(request._id, { status: "accepted" });
 
-    // Add reverse entry for symmetry (confirm friendship in both directions)
     await ctx.db.insert("friends", {
       userId: args.userId,
       friendId: args.friendId,
@@ -105,11 +101,13 @@ export const removeFriend = mutation({
 export const getPendingRequests = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const requests = await ctx.db
       .query("friends")
-      .withIndex("by_user_friend", (q) => q.eq("userId", args.userId))
+      .withIndex("by_friend_user", (q) => q.eq("friendId", args.userId))
       .filter((q) => q.eq("status", "pending"))
       .collect();
+    console.log("Pending Requests:", requests); // Debugging log
+    return requests;
   },
 });
 
