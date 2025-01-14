@@ -4,7 +4,7 @@
 
 import React from "react";
 import NavLink from "./nav-link";
-import { Crown, Handshake, House, NewspaperIcon, SquarePlus, User } from "lucide-react";
+import { Bell, Crown, Handshake, House, NewspaperIcon, SquarePlus, User } from "lucide-react";
 import AuthButton from "./auth-button";
 
 const SideBar = () => {
@@ -18,6 +18,7 @@ const SideBar = () => {
         <NavLink href="friendship" icon={<Handshake />} label="Frienships" />
         <NavLink href="wall-of-fame" icon={<Crown />} label="Winner" />
         <NavLink href="user-profile" icon={<User />} label="Profile"/>
+        <NavLink href="notifications" icon={<Bell />} label="Notifications" />
         {/* Add more links as needed */}
       </nav>
 
