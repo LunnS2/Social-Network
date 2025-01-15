@@ -10,8 +10,9 @@ export default defineSchema({
     image: v.string(),
     tokenIdentifier: v.string(),
     isOnline: v.boolean(),
-  }).index("by_tokenIdentifier", ["tokenIdentifier"]),
-  
+  }).index("by_tokenIdentifier", ["tokenIdentifier"])
+    .index("by_name", ["name"]),
+
   posts: defineTable({
     creator: v.string(),
     title: v.string(),
@@ -26,12 +27,13 @@ export default defineSchema({
     userId: v.string(),
   }).index("by_post_and_user", ["postId", "userId"]),
 
-  friends: defineTable({
-    userId: v.string(),
-    friendId: v.string(),
-    status: v.union(v.literal("pending"), v.literal("accepted"), v.literal("blocked")),
-  }).index("by_user_friend", ["userId", "friendId"]).index("by_friend_user", ["friendId", "userId"]),
-  
+  follows: defineTable({
+    followerId: v.id("users"),
+    followedId: v.id("users"),
+  })
+    .index("by_follower_and_followed", ["followerId", "followedId"])
+    .index("by_followed", ["followedId"]),
+
   wallOfFame: defineTable({
     postId: v.id("posts"),
     title: v.string(),

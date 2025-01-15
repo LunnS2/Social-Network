@@ -15,7 +15,7 @@ const SideBar = () => {
         <NavLink href="/" icon={<House/>} label="Welcome" />
         <NavLink href="feed" icon={<NewspaperIcon />} label="Feed" />
         <NavLink href="create-post" icon={<SquarePlus />} label="Post" />
-        <NavLink href="friendship" icon={<Handshake />} label="Frienships" />
+        <NavLink href="follows" icon={<Handshake />} label="Follow" />
         <NavLink href="wall-of-fame" icon={<Crown />} label="Winner" />
         <NavLink href="user-profile" icon={<User />} label="Profile"/>
         <NavLink href="notifications" icon={<Bell />} label="Notifications" />

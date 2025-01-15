@@ -107,3 +107,25 @@ export const getMe = query({
 		return user;
 	},
 });
+
+export const searchUsers = query({
+  args: { query: v.string() },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    const { query } = args;
+    return await ctx.db
+      .query("users")
+      .filter((q) => 
+        q.and(
+          q.neq(q.field("tokenIdentifier"), identity.tokenIdentifier),
+          q.gte(q.field("name"), query),
+          q.lt(q.field("name"), query + "\uffff")
+        )
+      )
+      .take(10);
+  },
+});
