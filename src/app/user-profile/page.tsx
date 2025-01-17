@@ -8,7 +8,9 @@ import { useQuery } from 'convex/react'
 
 const UserProfile = () => {
   const currentUser = useQuery(api.users.getMe)
-  const userPosts = useQuery(api.posts.getUserPosts, currentUser ? { creator: currentUser._id } : 'skip')
+  const userPosts = useQuery(api.posts.getUserPosts, currentUser ? { creator: currentUser._id } : "skip")
+  const followers = useQuery(api.follows.getFollowers, currentUser ? { userId: currentUser._id } : "skip")
+  const following = useQuery(api.follows.getFollowing, currentUser ? { userId: currentUser._id } : "skip")
 
   if (!currentUser) {
     return <div>Loading user profile...</div>
@@ -17,6 +19,10 @@ const UserProfile = () => {
   return (
     <div>
       <h1>{currentUser.name}'s Profile</h1>
+      <div className="stats">
+        <p>Followers: {followers ? followers.length : "Loading..."}</p>
+        <p>Following: {following ? following.length : "Loading..."}</p>
+      </div>
       <h2>Posts:</h2>
       {userPosts ? (
         userPosts.map((post) => (
