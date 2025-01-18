@@ -22,6 +22,13 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_creator", ["creator"]),
 
+  comments: defineTable({
+    sender: v.id("users"),
+    content: v.string(),
+    createdAt:v.number(),
+    postId: v.id("posts"),
+  }),
+
   likes: defineTable({
     postId: v.string(),
     userId: v.string(),
