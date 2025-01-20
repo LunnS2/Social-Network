@@ -34,7 +34,7 @@ export const createComment = mutation({
       content: args.content,
       createdAt: createdAt,
       postId: args.postId,
-    })
+    });
   }, 
 });
 
@@ -47,7 +47,18 @@ export const getComments = query({
       .order("desc")
       .collect();
     
-    return comments;
+    const commentsWithUserInfo = await Promise.all(
+      comments.map(async (comment) => {
+        const user = await ctx.db.get(comment.sender);
+        return {
+          ...comment,
+          senderName: user?.name || "Unknown User",
+          senderImage: user?.image || "",
+        };
+      })
+    );
+    
+    return commentsWithUserInfo;
   },
 });
 

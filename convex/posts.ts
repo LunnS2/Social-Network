@@ -117,7 +117,7 @@ export const getAllPosts = query({
       allPosts.map(async (post) => {
         if (post.content) {
           const url = await ctx.storage.getUrl(post.content);
-          return { ...post, contentUrl: url };
+          return { ...post, contentUrl: url || undefined };
         }
         return post;
       })

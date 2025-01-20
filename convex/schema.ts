@@ -14,7 +14,7 @@ export default defineSchema({
     .index("by_name", ["name"]),
 
   posts: defineTable({
-    creator: v.string(),
+    creator: v.id("users"),
     title: v.string(),
     content: v.optional(v.id("_storage")),
     contentUrl: v.optional(v.string()),
