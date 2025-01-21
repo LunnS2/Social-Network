@@ -34,6 +34,15 @@ export default defineSchema({
     userId: v.string(),
   }).index("by_post_and_user", ["postId", "userId"]),
 
+  notifications: defineTable({
+    userId: v.id("users"),
+    type: v.union(v.literal("like"), v.literal("comment"), v.literal("wallOfFame"), v.literal("follow"), v.literal("unfollow")),
+    postId: v.optional(v.id("posts")),
+    actorId: v.optional(v.id("users")),
+    createdAt: v.number(),
+    isRead: v.boolean(),
+  }).index("by_user_and_creation", ["userId", "createdAt"]),
+
   follows: defineTable({
     followerId: v.id("users"),
     followedId: v.id("users"),
