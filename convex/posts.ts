@@ -2,6 +2,7 @@
 
 import { ConvexError, v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { api } from "./_generated/api";
 
 export const generateUploadUrl = mutation(async (ctx) => {
   return await ctx.storage.generateUploadUrl();
@@ -143,19 +144,27 @@ export const getMostLikedPost = mutation(async (ctx) => {
       maxLikes = likes.length;
     }
   }
+
   const existingWallOfFameEntries = await ctx.db.query("wallOfFame").collect();
-    for (const entry of existingWallOfFameEntries) {
-      await ctx.db.delete(entry._id);
-    }
+  for (const entry of existingWallOfFameEntries) {
+    await ctx.db.delete(entry._id);
+  }
 
   if (mostLikedPost) {
-    await ctx.db.insert("wallOfFame", {
+    const wallOfFameEntry = await ctx.db.insert("wallOfFame", {
       postId: mostLikedPost._id,
       title: mostLikedPost.title,
       contentUrl: mostLikedPost.contentUrl,
       description: mostLikedPost.description,
       likes: maxLikes,
       createdAt: mostLikedPost.createdAt,
+    });
+
+    // Create a notification for the Wall of Fame winner
+    await ctx.runMutation(api.notifications.createNotification, {
+      userId: mostLikedPost.creator,
+      type: "wallOfFame",
+      postId: mostLikedPost._id,
     });
   }
 

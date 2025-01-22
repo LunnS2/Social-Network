@@ -2,6 +2,7 @@
 
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 
 export const followUser = mutation({
   args: { followedId: v.id("users") },
@@ -41,6 +42,13 @@ export const followUser = mutation({
       followerId: follower._id,
       followedId: followed._id,
     });
+
+    // Create a notification for the followed user
+    await ctx.runMutation(api.notifications.createNotification, {
+      userId: followed._id,
+      type: "follow",
+      actorId: follower._id,
+    });
   },
 });
 
@@ -73,6 +81,13 @@ export const unfollowUser = mutation({
     }
 
     await ctx.db.delete(follow._id);
+
+    // Create a notification for the unfollowed user
+    await ctx.runMutation(api.notifications.createNotification, {
+      userId: args.followedId,
+      type: "unfollow",
+      actorId: follower._id,
+    });
   },
 });
 

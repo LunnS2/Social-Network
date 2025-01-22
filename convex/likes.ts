@@ -2,6 +2,7 @@
 
 import { ConvexError, v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { api } from "./_generated/api";
 
 // Mutation to toggle like on a post
 export const toggleLike = mutation({
@@ -23,10 +24,34 @@ export const toggleLike = mutation({
       )
       .unique();
 
+    const post = await ctx.db.get(args.postId);
+    if (!post) {
+      throw new ConvexError("Post not found.");
+    }
+
     if (existingLike) {
       // If the like exists, remove it (unlike)
       await ctx.db.delete(existingLike._id);
       console.log(`User ${args.userId} unliked post ${args.postId}`);
+
+      // Remove the like notification if it exists
+      const notifications = await ctx.db
+        .query("notifications")
+        .withIndex("by_user_and_creation", (q) =>
+          q.eq("userId", post.creator)
+        )
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("type"), "like"),
+            q.eq(q.field("postId"), args.postId),
+            q.eq(q.field("actorId"), args.userId)
+          )
+        )
+        .collect();
+
+      if (notifications.length > 0) {
+        await ctx.db.delete(notifications[0]._id);
+      }
     } else {
       // If the like doesn't exist, add a new like
       await ctx.db.insert("likes", {
@@ -34,6 +59,16 @@ export const toggleLike = mutation({
         userId: args.userId,
       });
       console.log(`User ${args.userId} liked post ${args.postId}`);
+
+      // Create a notification for the post owner
+      if (post.creator !== args.userId) {
+        await ctx.runMutation(api.notifications.createNotification, {
+          userId: post.creator,
+          type: "like",
+          postId: args.postId,
+          actorId: args.userId,
+        });
+      }
     }
   },
 });

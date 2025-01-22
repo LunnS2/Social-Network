@@ -2,6 +2,7 @@
 
 import { ConvexError, v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { api } from "./_generated/api";
 
 export const createComment = mutation({
   args: {
@@ -35,6 +36,18 @@ export const createComment = mutation({
       createdAt: createdAt,
       postId: args.postId,
     });
+
+    // Fetch the post to get the creator's ID
+    const post = await ctx.db.get(args.postId);
+    if (post && post.creator !== args.sender) {
+      // Create a notification for the post owner
+      await ctx.runMutation(api.notifications.createNotification, {
+        userId: post.creator,
+        type: "comment",
+        postId: args.postId,
+        actorId: args.sender,
+      });
+    }
   }, 
 });
 
