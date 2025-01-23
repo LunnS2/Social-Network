@@ -8,16 +8,18 @@ import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 
 function Notifications() {
-  const notifications = useQuery(api.notifications.getUserNotifications);
+  const notificationData = useQuery(api.notifications.getUserNotifications);
   const markAsRead = useMutation(api.notifications.markNotificationAsRead);
 
-  if (notifications === undefined) {
+  if (notificationData === undefined) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
+
+  const { notifications } = notificationData;
 
   const handleMarkAsRead = async (notificationId: Id<"notifications">) => {
     await markAsRead({ notificationId });

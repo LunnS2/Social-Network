@@ -48,7 +48,9 @@ export const getUserNotifications = query({
       .order("desc")
       .collect();
 
-    return Promise.all(
+    const notificationCount = notifications.length;
+
+    const detailedNotifications = await Promise.all(
       notifications.map(async (notification) => {
         const post = notification.postId ? await ctx.db.get(notification.postId) : null;
         const actor = notification.actorId ? await ctx.db.get(notification.actorId) : null;
@@ -59,6 +61,11 @@ export const getUserNotifications = query({
         };
       })
     );
+
+    return {
+      notifications: detailedNotifications,
+      count: notificationCount
+    };
   },
 });
 
