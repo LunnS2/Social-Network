@@ -6,6 +6,7 @@ import React from "react";
 import NavLink from "./nav-link";
 import { Bell, Crown, Handshake, House, NewspaperIcon, SquarePlus, User } from "lucide-react";
 import AuthButton from "./auth-button";
+import NotificationCount from "./notification-count";
 
 const SideBar = () => {
   return (
@@ -18,7 +19,7 @@ const SideBar = () => {
         <NavLink href="follows" icon={<Handshake />} label="Follow" />
         <NavLink href="wall-of-fame" icon={<Crown />} label="Winner" />
         <NavLink href="user-profile" icon={<User />} label="Profile"/>
-        <NavLink href="notifications" icon={<Bell />} label="Notifications" />
+        <NavLink href="notifications" icon={<Bell />} label="Notifications" badge={<NotificationCount />} />
         {/* Add more links as needed */}
       </nav>
 
