@@ -1,3 +1,5 @@
+// social-network\src\app\page.tsx
+
 import { SignInButton } from "@clerk/nextjs";
 import ThemeSwitch from "@/components/theme-switch";
 

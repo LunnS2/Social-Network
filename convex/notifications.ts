@@ -29,9 +29,13 @@ export const getUserNotifications = query({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
+    
     if (!identity) {
+      console.error("No user identity found");
       throw new ConvexError("Unauthorized");
     }
+
+    console.log("User identity:", identity);  // Debugging log
 
     const user = await ctx.db
       .query("users")
@@ -39,6 +43,7 @@ export const getUserNotifications = query({
       .unique();
 
     if (!user) {
+      console.error("User not found");
       throw new ConvexError("User not found");
     }
 
@@ -68,6 +73,7 @@ export const getUserNotifications = query({
     };
   },
 });
+
 
 // Mark a notification as read
 export const markNotificationAsRead = mutation({
