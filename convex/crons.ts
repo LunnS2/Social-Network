@@ -10,7 +10,7 @@ crons.weekly(
     hourUTC: 14,
     minuteUTC: 0,
   },
-  api.posts.getMostLikedPost
+  api.posts.wallOfFamePickingProcess
 )
 
 export default crons;

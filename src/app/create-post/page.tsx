@@ -8,8 +8,13 @@ import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 
 const CreatePost = () => {
+  // Get authentication status
   const { isAuthenticated, isLoading } = useConvexAuth();
 
+  // If authentication is loading or user is not authenticated, return null
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
   // Fetch user data
   const currentUser = useQuery(api.users.getMe);
   const createPost = useMutation(api.posts.createPost);
@@ -138,4 +143,3 @@ const CreatePost = () => {
 };
 
 export default CreatePost;
-

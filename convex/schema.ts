@@ -27,7 +27,7 @@ export default defineSchema({
     content: v.string(),
     createdAt:v.number(),
     postId: v.id("posts"),
-  }),
+  }).index("by_postId", ["postId"]),
 
   likes: defineTable({
     postId: v.string(),

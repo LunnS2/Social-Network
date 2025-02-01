@@ -1,10 +1,16 @@
 // social-network\next.config.ts
 
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
-    domains: ['your-image-hosting-domain.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'optimistic-opossum-319.convex.cloud',
+        port: '', // leave empty for default
+        pathname: '/api/storage/**', // allows access to all images under /api/storage
+      },
+    ],
   },
 };
 

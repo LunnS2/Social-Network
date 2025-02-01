@@ -3,11 +3,18 @@
 "use client";
 
 import React from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 
 function Notifications() {
+  // Get authentication status
+    const { isAuthenticated, isLoading } = useConvexAuth();
+  
+    // If authentication is loading or user is not authenticated, return null
+    if (isLoading || !isAuthenticated) {
+      return null;
+    }
   const notificationData = useQuery(api.notifications.getUserNotifications);
   const markAsRead = useMutation(api.notifications.markNotificationAsRead);
 
@@ -36,7 +43,7 @@ function Notifications() {
       case "unfollow":
         return `${notification.actorName} unfollowed you`;
       case "wallOfFame":
-        return `Your post "${notification.postTitle}" made it to the Wall of Fame!`;
+        return `Your post made it to the Wall of Fame! Go check it out`;
       default:
         return "You have a new notification";
     }

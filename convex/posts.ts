@@ -83,7 +83,17 @@ export const deletePost = mutation({
       await ctx.db.delete(like._id);
     }
 
-    console.log(`Post ${args.postId} and associated likes deleted.`);
+    // Delete associated comments
+    const comments = await ctx.db
+      .query("comments")
+      .withIndex("by_postId", (q) => q.eq("postId", args.postId))
+      .collect();
+
+    for (const comment of comments) {
+      await ctx.db.delete(comment._id);
+    }
+
+    console.log(`Post ${args.postId}, associated likes, and comments deleted.`);
   },
 });
 
@@ -128,11 +138,13 @@ export const getAllPosts = query({
   },
 });
 
-export const getMostLikedPost = mutation(async (ctx) => {
+export const wallOfFamePickingProcess = mutation(async (ctx) => {
+  // Fetch all posts
   const allPosts = await ctx.db.query("posts").collect();
   let mostLikedPost = null;
   let maxLikes = 0;
 
+  // Find the post with the most likes
   for (const post of allPosts) {
     const likes = await ctx.db
       .query("likes")
@@ -144,33 +156,49 @@ export const getMostLikedPost = mutation(async (ctx) => {
       maxLikes = likes.length;
     }
   }
+  // NOTE: KEEPING THE STEPS IN THIS ORDER IS CRUCIAL TO AVOID UNWANTED BEHAVIOR
 
+  // Exit early if no posts exist
+  if (!mostLikedPost) {
+    console.log("No posts exist. Skipping Wall of Fame update.");
+    return;
+  }
+
+  // 1: delete all notifications
+  const allNotifications = await ctx.db.query("notifications").collect();
+  for (const notification of allNotifications) {
+    await ctx.db.delete(notification._id);
+  }
+
+  // 2: delete previous wall of fame entries
   const existingWallOfFameEntries = await ctx.db.query("wallOfFame").collect();
   for (const entry of existingWallOfFameEntries) {
     await ctx.db.delete(entry._id);
   }
 
-  if (mostLikedPost) {
-    const wallOfFameEntry = await ctx.db.insert("wallOfFame", {
-      postId: mostLikedPost._id,
-      title: mostLikedPost.title,
-      contentUrl: mostLikedPost.contentUrl,
-      description: mostLikedPost.description,
-      likes: maxLikes,
-      createdAt: mostLikedPost.createdAt,
-    });
+  // 3: announce the winner
+  const wallOfFameEntry = await ctx.db.insert("wallOfFame", {
+    postId: mostLikedPost._id,
+    title: mostLikedPost.title,
+    contentUrl: mostLikedPost.contentUrl,
+    description: mostLikedPost.description,
+    likes: maxLikes,
+    createdAt: mostLikedPost.createdAt,
+  });
 
-    // Create a notification for the Wall of Fame winner
-    await ctx.runMutation(api.notifications.createNotification, {
-      userId: mostLikedPost.creator,
-      type: "wallOfFame",
-      postId: mostLikedPost._id,
-    });
-  }
+  // 4: create winner notification
+  await ctx.runMutation(api.notifications.createNotification, {
+    userId: mostLikedPost.creator,
+    type: "wallOfFame",
+    postId: mostLikedPost._id,
+  });
 
-  // Delete all posts and likes after determining the winner
+  // 5: delete all posts, associated likes, and comments
   for (const post of allPosts) {
+    // Delete the post
     await ctx.db.delete(post._id);
+
+    // Delete associated likes
     const likes = await ctx.db
       .query("likes")
       .withIndex("by_post_and_user", (q) => q.eq("postId", post._id))
@@ -179,7 +207,19 @@ export const getMostLikedPost = mutation(async (ctx) => {
     for (const like of likes) {
       await ctx.db.delete(like._id);
     }
+
+    // Delete associated comments
+    const comments = await ctx.db
+      .query("comments")
+      .withIndex("by_postId", (q) => q.eq("postId", post._id))
+      .collect();
+
+    for (const comment of comments) {
+      await ctx.db.delete(comment._id);
+    }
   }
+
+  console.log("All posts, associated likes, and comments deleted.");
 });
 
 export const getWallOfFame = query(async (ctx) => {

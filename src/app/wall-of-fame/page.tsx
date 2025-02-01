@@ -3,10 +3,17 @@
 "use client"
 
 import React from "react";
-import { useQuery } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
 const WallOfFame = () => {
+  // Get authentication status
+    const { isAuthenticated, isLoading } = useConvexAuth();
+  
+    // If authentication is loading or user is not authenticated, return null
+    if (isLoading || !isAuthenticated) {
+      return null;
+    }
   const wallPost = useQuery(api.posts.getWallOfFame);
 
   if (!wallPost) {

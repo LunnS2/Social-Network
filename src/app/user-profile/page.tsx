@@ -1,23 +1,40 @@
 // social-network\src\app\user-profile\page.tsx
+
 "use client";
 
 import React from "react";
 import { api } from "../../../convex/_generated/api";
-import { useQuery } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 
 const UserProfile = () => {
+  // Get authentication status
+  const { isAuthenticated, isLoading } = useConvexAuth();
+
+  // If authentication is loading or user is not authenticated, return null
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
+
+  // Fetch current user info
   const currentUser = useQuery(api.users.getMe);
+
+  // Ensure currentUser is loaded before making dependent queries
+  const userId = currentUser?._id;
+
+  // Fetch user's posts, followers, and following only if currentUser is available
   const userPosts = useQuery(
     api.posts.getUserPosts,
-    currentUser ? { creator: currentUser._id } : "skip"
+    userId ? { creator: userId } : "skip"
   );
+
   const followers = useQuery(
     api.follows.getFollowers,
-    currentUser ? { userId: currentUser._id } : "skip"
+    userId ? { userId } : "skip"
   );
+
   const following = useQuery(
     api.follows.getFollowing,
-    currentUser ? { userId: currentUser._id } : "skip"
+    userId ? { userId } : "skip"
   );
 
   if (!currentUser) {
