@@ -138,6 +138,14 @@ export const getAllPosts = query({
   },
 });
 
+export const getWallOfFame = query(async (ctx) => {
+  const wallPost = await ctx.db
+    .query("wallOfFame")
+    .order("desc")
+    .first(); // Fetch latest entry
+  return wallPost || null;
+});
+
 export const wallOfFamePickingProcess = mutation(async (ctx) => {
   // Fetch all posts
   const allPosts = await ctx.db.query("posts").collect();
@@ -156,6 +164,7 @@ export const wallOfFamePickingProcess = mutation(async (ctx) => {
       maxLikes = likes.length;
     }
   }
+
   // NOTE: KEEPING THE STEPS IN THIS ORDER IS CRUCIAL TO AVOID UNWANTED BEHAVIOR
 
   // Exit early if no posts exist
@@ -177,10 +186,15 @@ export const wallOfFamePickingProcess = mutation(async (ctx) => {
   }
 
   // 3: announce the winner
+  let contentUrl: string | undefined = mostLikedPost.contentUrl || undefined;
+  if (mostLikedPost.content) {
+    contentUrl = await ctx.storage.getUrl(mostLikedPost.content) || undefined;
+  }
+
   const wallOfFameEntry = await ctx.db.insert("wallOfFame", {
     postId: mostLikedPost._id,
     title: mostLikedPost.title,
-    contentUrl: mostLikedPost.contentUrl,
+    contentUrl,
     description: mostLikedPost.description,
     likes: maxLikes,
     createdAt: mostLikedPost.createdAt,
@@ -222,7 +236,3 @@ export const wallOfFamePickingProcess = mutation(async (ctx) => {
   console.log("All posts, associated likes, and comments deleted.");
 });
 
-export const getWallOfFame = query(async (ctx) => {
-  const wallPost = await ctx.db.query("wallOfFame").first();
-  return wallPost || null;
-});

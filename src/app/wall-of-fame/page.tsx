@@ -8,12 +8,13 @@ import { api } from "../../../convex/_generated/api";
 
 const WallOfFame = () => {
   // Get authentication status
-    const { isAuthenticated, isLoading } = useConvexAuth();
-  
-    // If authentication is loading or user is not authenticated, return null
-    if (isLoading || !isAuthenticated) {
-      return null;
-    }
+  const { isAuthenticated, isLoading } = useConvexAuth();
+
+  // If authentication is loading or user is not authenticated, return null
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
+
   const wallPost = useQuery(api.posts.getWallOfFame);
 
   if (!wallPost) {
@@ -26,12 +27,15 @@ const WallOfFame = () => {
       <div className="p-4 border border-border rounded-md">
         <h2 className="text-xl font-semibold mb-2">{wallPost.title}</h2>
         <p className="text-muted-foreground mb-4">{wallPost.description}</p>
-        {wallPost.contentUrl && (
+        {wallPost.contentUrl ? (
           <img
             src={wallPost.contentUrl}
             alt={wallPost.title}
             className="w-full rounded-md"
+            onError={(e) => (e.currentTarget.style.display = 'none')}
           />
+        ) : (
+          <p className="text-sm text-muted-foreground">No image available</p>
         )}
         <p className="text-sm text-muted-foreground mt-4">
           {wallPost.likes} Likes - Posted on {new Date(wallPost.createdAt).toLocaleDateString()}
