@@ -23,19 +23,20 @@ interface PostProps {
   onDelete: (postId: Id<"posts">) => void;
 }
 
-const Post: React.FC<PostProps> = ({
-  post,
-  currentUser,
-  allUsers,
-  onDelete,
-}) => {
+const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) => {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState("");
   const comments = useQuery(api.comments.getComments, { postId: post._id });
   const createComment = useMutation(api.comments.createComment);
   const deleteComment = useMutation(api.comments.deleteComment);
 
-  const postCreator = allUsers.find((user) => user._id === post.creator);
+  // Ensure currentUser is considered in the lookup
+  const postCreator =
+    post.creator === currentUser?._id
+      ? currentUser
+      : allUsers.find((user) => user._id === post.creator);
+
+  console.log("Post Creator:", postCreator);
 
   const handleCreateComment = async () => {
     if (newComment.trim() && currentUser) {
@@ -57,6 +58,7 @@ const Post: React.FC<PostProps> = ({
       <div className="flex items-center mb-4">
         <div className="relative group">
           <img
+            key={postCreator?.image} // Forces React to update when the image changes
             src={postCreator?.image || "/default-avatar.png"}
             alt={postCreator?.name || "User"}
             className="w-10 h-10 rounded-full mr-3"
@@ -77,9 +79,7 @@ const Post: React.FC<PostProps> = ({
         </button>
       )}
 
-      {post.description && (
-        <p className="text-muted-foreground mb-4">{post.description}</p>
-      )}
+      {post.description && <p className="text-muted-foreground mb-4">{post.description}</p>}
       {post.contentUrl && (
         <div className="mb-4">
           {post.contentUrl.endsWith(".mp4") ? (
@@ -87,11 +87,7 @@ const Post: React.FC<PostProps> = ({
               <source src={post.contentUrl} type="video/mp4" />
             </video>
           ) : (
-            <img
-              src={post.contentUrl}
-              alt={post.title}
-              className="w-full rounded-md"
-            />
+            <img src={post.contentUrl} alt={post.title} className="w-full rounded-md" />
           )}
         </div>
       )}
@@ -115,9 +111,11 @@ const Post: React.FC<PostProps> = ({
           <h3 className="text-lg font-semibold">Comments</h3>
           <ul className="space-y-2 mt-2">
             {comments?.map((comment) => {
-              const commentSender = allUsers.find(
-                (user) => user._id === comment.sender
-              );
+              const commentSender =
+                comment.sender === currentUser?._id
+                  ? currentUser
+                  : allUsers.find((user) => user._id === comment.sender);
+
               return (
                 <li key={comment._id} className="flex items-start space-x-2">
                   <div className="relative group">

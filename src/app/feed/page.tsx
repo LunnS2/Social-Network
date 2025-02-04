@@ -2,7 +2,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
@@ -12,26 +12,30 @@ const Feed = () => {
   // Get authentication status
   const { isAuthenticated, isLoading } = useConvexAuth();
 
-  // If authentication is loading or user is not authenticated, return null
-  if (isLoading || !isAuthenticated) {
-    return null;
-  }
+  // Fetch posts, users, and current user
   const posts = useQuery(api.posts.getAllPosts);
   const currentUser = useQuery(api.users.getMe);
   const allUsers = useQuery(api.users.getUsers);
   const deletePost = useMutation(api.posts.deletePost);
 
+  // Ensure currentUser is included in allUsers
+  const allUsersList = useMemo(() => {
+    if (!allUsers || !currentUser) return [];
+    return [...allUsers, currentUser].filter(
+      (user, index, self) => self.findIndex((u) => u._id === user._id) === index
+    );
+  }, [allUsers, currentUser]);
+
   const handleDelete = async (postId: Id<"posts">) => {
     if (!currentUser) return;
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this post?"
-    );
+    const confirmed = window.confirm("Are you sure you want to delete this post?");
     if (confirmed) {
       await deletePost({ postId, userId: currentUser._id });
     }
   };
 
-  if (!posts || !currentUser || !allUsers) {
+  // Show loading state while fetching data
+  if (isLoading || !posts || !currentUser || !allUsers) {
     return (
       <div className="flex justify-center items-center min-h-screen text-foreground">
         Loading...
@@ -54,7 +58,7 @@ const Feed = () => {
               key={post._id}
               post={post}
               currentUser={currentUser}
-              allUsers={allUsers}
+              allUsers={allUsersList}
               onDelete={handleDelete}
             />
           ))}
@@ -65,3 +69,4 @@ const Feed = () => {
 };
 
 export default Feed;
+
