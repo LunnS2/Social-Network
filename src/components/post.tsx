@@ -6,6 +6,7 @@ import { X, MessageCircle, Trash2 } from "lucide-react";
 import LikeButton from "@/components/like-button";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import Image from "next/image";
 
 interface PostProps {
   post: {
@@ -30,7 +31,6 @@ const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) =>
   const createComment = useMutation(api.comments.createComment);
   const deleteComment = useMutation(api.comments.deleteComment);
 
-  // Ensure currentUser is considered in the lookup
   const postCreator =
     post.creator === currentUser?._id
       ? currentUser
@@ -57,11 +57,14 @@ const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) =>
     <li className="p-4 border border-border rounded-md relative">
       <div className="flex items-center mb-4">
         <div className="relative group">
-          <img
-            key={postCreator?.image} // Forces React to update when the image changes
+          <Image
+            key={postCreator?.image}
             src={postCreator?.image || "/default-avatar.png"}
             alt={postCreator?.name || "User"}
+            width={40} 
+            height={40}
             className="w-10 h-10 rounded-full mr-3"
+            unoptimized={!!postCreator?.image?.startsWith("http")} // Handle external URLs
           />
           <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity">
             {postCreator?.name || "Unknown User"}
@@ -80,6 +83,7 @@ const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) =>
       )}
 
       {post.description && <p className="text-muted-foreground mb-4">{post.description}</p>}
+
       {post.contentUrl && (
         <div className="mb-4">
           {post.contentUrl.endsWith(".mp4") ? (
@@ -87,10 +91,18 @@ const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) =>
               <source src={post.contentUrl} type="video/mp4" />
             </video>
           ) : (
-            <img src={post.contentUrl} alt={post.title} className="w-full rounded-md" />
+            <Image
+              src={post.contentUrl}
+              alt={post.title}
+              width={500} 
+              height={300}
+              className="w-full rounded-md"
+              unoptimized={!!post.contentUrl.startsWith("http")} // Handle external URLs
+            />
           )}
         </div>
       )}
+
       <div className="flex items-center space-x-4">
         <LikeButton postId={post._id} userId={currentUser?._id} />
         <button
@@ -119,10 +131,13 @@ const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) =>
               return (
                 <li key={comment._id} className="flex items-start space-x-2">
                   <div className="relative group">
-                    <img
+                    <Image
                       src={commentSender?.image || "/default-avatar.png"}
                       alt={commentSender?.name || "User"}
+                      width={32}
+                      height={32}
                       className="w-8 h-8 rounded-full"
+                      unoptimized={!!commentSender?.image?.startsWith("http")} // Handle external URLs
                     />
                     <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity">
                       {commentSender?.name || "Unknown User"}
@@ -166,3 +181,4 @@ const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) =>
 };
 
 export default Post;
+
