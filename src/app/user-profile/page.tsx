@@ -4,24 +4,17 @@
 
 import React from "react";
 import { api } from "../../../convex/_generated/api";
-import { useConvexAuth, useQuery } from "convex/react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import Post from "@/components/post";
+import { Id } from "../../../convex/_generated/dataModel";
 
 const UserProfile = () => {
-  // Get authentication status
   const { isAuthenticated, isLoading } = useConvexAuth();
+  if (isLoading || !isAuthenticated) return null;
 
-  // If authentication is loading or user is not authenticated, return null
-  if (isLoading || !isAuthenticated) {
-    return null;
-  }
-
-  // Fetch current user info
   const currentUser = useQuery(api.users.getMe);
-
-  // Ensure currentUser is loaded before making dependent queries
   const userId = currentUser?._id;
 
-  // Fetch user's posts, followers, and following only if currentUser is available
   const userPosts = useQuery(
     api.posts.getUserPosts,
     userId ? { creator: userId } : "skip"
@@ -37,6 +30,19 @@ const UserProfile = () => {
     userId ? { userId } : "skip"
   );
 
+  const allUsers = useQuery(api.users.getUsers);
+  const deletePost = useMutation(api.posts.deletePost);
+
+  const handleDelete = async (postId: Id<"posts">) => {
+    if (!currentUser) return;
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this post?"
+    );
+    if (confirmed) {
+      await deletePost({ postId, userId: currentUser._id });
+    }
+  };
+
   if (!currentUser) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg">
@@ -47,56 +53,40 @@ const UserProfile = () => {
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] min-h-screen gap-8 px-8 py-8 sm:py-20 sm:px-24 bg-background text-foreground font-sans">
-      {/* Header */}
-      <header className="flex justify-between items-center w-full max-w-4xl">
-        <h1 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-          {currentUser.name}'s Profile
-        </h1>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex flex-col items-center space-y-8 w-full max-w-3xl">
-        <div className="w-full grid grid-cols-2 gap-4 bg-card text-card-foreground p-6 rounded-lg shadow-lg">
-          <div className="text-center">
-            <p className="text-lg font-semibold">Followers</p>
-            <p className="text-xl font-bold">
-              {followers ? followers.length : "Loading..."}
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="text-lg font-semibold">Following</p>
-            <p className="text-xl font-bold">
-              {following ? following.length : "Loading..."}
-            </p>
-          </div>
+      {/* Stats */}
+      <div className="w-full grid grid-cols-2 gap-4 bg-card text-card-foreground p-6 rounded-lg shadow-lg">
+        <div className="text-center">
+          <p className="text-lg font-semibold">Followers</p>
+          <p className="text-xl font-bold">
+            {followers ? followers.length : "Loading..."}
+          </p>
         </div>
+        <div className="text-center">
+          <p className="text-lg font-semibold">Following</p>
+          <p className="text-xl font-bold">
+            {following ? following.length : "Loading..."}
+          </p>
+        </div>
+      </div>
 
-        <section className="w-full space-y-4">
-          <h2 className="text-3xl font-bold text-foreground">Posts</h2>
-          {userPosts ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {userPosts.map((post) => (
-                <div
-                  key={post._id}
-                  className="bg-secondary text-secondary-foreground p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                >
-                  <h3 className="text-xl font-semibold mb-2">{post.title}</h3>
-                  {post.contentUrl && (
-                    <img
-                      src={post.contentUrl}
-                      alt={post.title}
-                      className="w-full h-40 object-cover rounded-md mb-4"
-                    />
-                  )}
-                  <p className="text-muted-foreground">{post.description}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground">Loading posts...</p>
-          )}
-        </section>
-      </main>
+      {/* Posts Section */}
+      <section className="w-full space-y-4">
+        {userPosts && userPosts.length > 0 ? (
+          <ul className="space-y-4">
+            {userPosts.map((post) => (
+              <Post
+                key={post._id}
+                post={{ ...post, contentUrl: post.contentUrl ?? undefined }}
+                currentUser={currentUser}
+                allUsers={allUsers || []}
+                onDelete={handleDelete}
+              />
+            ))}
+          </ul>
+        ) : (
+          <p className="flex justify-center text-muted-foreground">No posts available.</p>
+        )}
+      </section>
     </div>
   );
 };

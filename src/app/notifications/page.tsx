@@ -51,7 +51,6 @@ function Notifications() {
 
   return (
     <div className="bg-background text-foreground min-h-screen p-8">
-      <h1 className="text-3xl font-bold mb-8 text-primary">Notifications</h1>
       {notifications.length === 0 ? (
         <p className="text-muted-foreground">No notifications yet.</p>
       ) : (

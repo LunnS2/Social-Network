@@ -3,6 +3,7 @@
 import { ConvexError, v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { api } from "./_generated/api";
+import { Id } from "./_generated/dataModel";
 
 export const generateUploadUrl = mutation(async (ctx) => {
   return await ctx.storage.generateUploadUrl();
@@ -111,7 +112,7 @@ export const getUserPosts = query({
     return await Promise.all(
       userPosts.map(async (post) => {
         if (post.content) {
-          const url = await ctx.storage.getUrl(post.content);
+          const url = await ctx.storage.getUrl(post.content as Id<"_storage">);
           return { ...post, contentUrl: url }; 
         }
         return post;
@@ -122,10 +123,46 @@ export const getUserPosts = query({
 
 export const getAllPosts = query({
   handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    // Get current user
+    const currentUser = await ctx.db
+      .query("users")
+      .withIndex("by_tokenIdentifier", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .unique();
+
+    if (!currentUser) {
+      throw new ConvexError("User not found");
+    }
+
+    // Get followed users
+    const following = await ctx.db
+      .query("follows")
+      .withIndex("by_follower_and_followed", (q) => q.eq("followerId", currentUser._id))
+      .collect();
+
+    const followedUserIds = new Set(following.map((follow) => follow.followedId));
+
+    // Fetch all posts
     const allPosts = await ctx.db.query("posts").collect();
 
+    // Sort: posts from followed users first, then by createdAt
+    const sortedPosts = allPosts.sort((a, b) => {
+      const aIsFollowed = followedUserIds.has(a.creator);
+      const bIsFollowed = followedUserIds.has(b.creator);
+
+      if (aIsFollowed && !bIsFollowed) return -1;
+      if (!aIsFollowed && bIsFollowed) return 1;
+
+      return b.createdAt - a.createdAt;
+    });
+
+    // Add content URLs
     const postsWithUrls = await Promise.all(
-      allPosts.map(async (post) => {
+      sortedPosts.map(async (post) => {
         if (post.content) {
           const url = await ctx.storage.getUrl(post.content);
           return { ...post, contentUrl: url || undefined };
@@ -134,9 +171,10 @@ export const getAllPosts = query({
       })
     );
 
-    return postsWithUrls.sort((a, b) => b.createdAt - a.createdAt);
+    return postsWithUrls;
   },
 });
+
 
 export const getWallOfFame = query(async (ctx) => {
   const wallPost = await ctx.db

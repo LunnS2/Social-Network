@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Id } from "../../convex/_generated/dataModel";
-import { X, MessageCircle, Trash2 } from "lucide-react";
+import { X, MessageCircle, Trash2, UserPlus, UserMinus } from "lucide-react";
 import LikeButton from "@/components/like-button";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -24,19 +24,29 @@ interface PostProps {
   onDelete: (postId: Id<"posts">) => void;
 }
 
-const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) => {
+const Post: React.FC<PostProps> = ({
+  post,
+  currentUser,
+  allUsers,
+  onDelete,
+}) => {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState("");
   const comments = useQuery(api.comments.getComments, { postId: post._id });
   const createComment = useMutation(api.comments.createComment);
   const deleteComment = useMutation(api.comments.deleteComment);
 
+  // Add these lines for follow functionality
+  const isFollowing = useQuery(api.follows.isFollowing, {
+    followedId: post.creator,
+  });
+  const followUser = useMutation(api.follows.followUser);
+  const unfollowUser = useMutation(api.follows.unfollowUser);
+
   const postCreator =
     post.creator === currentUser?._id
       ? currentUser
       : allUsers.find((user) => user._id === post.creator);
-
-  console.log("Post Creator:", postCreator);
 
   const handleCreateComment = async () => {
     if (newComment.trim() && currentUser) {
@@ -53,6 +63,15 @@ const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) =>
     await deleteComment({ commentId });
   };
 
+  // Add this function for follow/unfollow
+  const handleFollowToggle = async () => {
+    if (isFollowing) {
+      await unfollowUser({ followedId: post.creator });
+    } else {
+      await followUser({ followedId: post.creator });
+    }
+  };
+
   return (
     <li className="p-4 border border-border rounded-md relative">
       <div className="flex items-center mb-4">
@@ -61,16 +80,30 @@ const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) =>
             key={postCreator?.image}
             src={postCreator?.image || "/default-avatar.png"}
             alt={postCreator?.name || "User"}
-            width={40} 
+            width={40}
             height={40}
             className="w-10 h-10 rounded-full mr-3"
-            unoptimized={!!postCreator?.image?.startsWith("http")} // Handle external URLs
+            unoptimized={!!postCreator?.image?.startsWith("http")}
           />
           <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity">
             {postCreator?.name || "Unknown User"}
           </span>
         </div>
-        <h2 className="text-xl font-semibold text-primary">{post.title}</h2>
+        <h2 className="text-xl font-semibold text-primary overflow-hidden text-ellipsis">{post.title}</h2>
+
+        {/* Add follow/unfollow button */}
+        {currentUser?._id !== post.creator && (
+          <button
+            onClick={handleFollowToggle}
+            className="ml-4 text-primary hover:text-primary/80 p-2 rounded-full focus:outline-none"
+          >
+            {isFollowing ? (
+              <UserMinus className="w-5 h-5" />
+            ) : (
+              <UserPlus className="w-5 h-5" />
+            )}
+          </button>
+        )}
       </div>
 
       {currentUser?._id === post.creator && (
@@ -82,24 +115,20 @@ const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) =>
         </button>
       )}
 
-      {post.description && <p className="text-muted-foreground mb-4">{post.description}</p>}
+      {post.description && (
+        <p className="text-muted-foreground mb-4 overflow-hidden text-ellipsis">{post.description}</p>
+      )}
 
       {post.contentUrl && (
         <div className="mb-4">
-          {post.contentUrl.endsWith(".mp4") ? (
-            <video controls className="w-full rounded-md">
-              <source src={post.contentUrl} type="video/mp4" />
-            </video>
-          ) : (
-            <Image
-              src={post.contentUrl}
-              alt={post.title}
-              width={500} 
-              height={300}
-              className="w-full rounded-md"
-              unoptimized={!!post.contentUrl.startsWith("http")} // Handle external URLs
-            />
-          )}
+          <Image
+            src={post.contentUrl}
+            alt={post.title}
+            width={500}
+            height={300}
+            className="w-full rounded-md"
+            unoptimized={!!post.contentUrl.startsWith("http")}
+          />
         </div>
       )}
 
@@ -137,7 +166,7 @@ const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) =>
                       width={32}
                       height={32}
                       className="w-8 h-8 rounded-full"
-                      unoptimized={!!commentSender?.image?.startsWith("http")} // Handle external URLs
+                      unoptimized={!!commentSender?.image?.startsWith("http")}
                     />
                     <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity">
                       {commentSender?.name || "Unknown User"}
@@ -181,4 +210,3 @@ const Post: React.FC<PostProps> = ({ post, currentUser, allUsers, onDelete }) =>
 };
 
 export default Post;
-

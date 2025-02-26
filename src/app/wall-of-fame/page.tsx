@@ -5,6 +5,7 @@
 import React from "react";
 import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { Crown } from "lucide-react";
 
 const WallOfFame = () => {
   // Get authentication status
@@ -18,12 +19,14 @@ const WallOfFame = () => {
   const wallPost = useQuery(api.posts.getWallOfFame);
 
   if (!wallPost) {
-    return <div className="p-8">No post in Wall of Fame yet!</div>;
+    return <div className="flex justify-center align-middle p-8">No post in Wall of Fame yet!</div>;
   }
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-primary mb-4">Wall of Fame</h1>
+      <div className="text-primary flex justify-center">
+      <Crown />
+      </div>
       <div className="p-4 border border-border rounded-md">
         <h2 className="text-xl font-semibold mb-2">{wallPost.title}</h2>
         <p className="text-muted-foreground mb-4">{wallPost.description}</p>

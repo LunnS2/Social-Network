@@ -12,6 +12,11 @@ const Feed = () => {
   // Get authentication status
   const { isAuthenticated, isLoading } = useConvexAuth();
 
+  // If authentication is loading or user is not authenticated, return null
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
+
   // Fetch posts, users, and current user
   const posts = useQuery(api.posts.getAllPosts);
   const currentUser = useQuery(api.users.getMe);
@@ -28,7 +33,9 @@ const Feed = () => {
 
   const handleDelete = async (postId: Id<"posts">) => {
     if (!currentUser) return;
-    const confirmed = window.confirm("Are you sure you want to delete this post?");
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this post?"
+    );
     if (confirmed) {
       await deletePost({ postId, userId: currentUser._id });
     }
@@ -45,10 +52,9 @@ const Feed = () => {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <header className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-primary">Feed</h1>
-      </header>
-
+      <p className="mb-8 flex justify-center text-muted-foreground">
+        users you follow display at the top
+      </p>
       {posts.length === 0 ? (
         <p className="text-center text-muted-foreground">No posts available.</p>
       ) : (
@@ -69,4 +75,3 @@ const Feed = () => {
 };
 
 export default Feed;
-
