@@ -8,13 +8,15 @@ interface NavLinkProps {
   icon: ReactNode;
   label: string;
   badge?: ReactNode;
+  onClick?: () => void; // Accept an onClick function
 }
 
-function NavLink({ href, icon, label, badge }: NavLinkProps) {
+function NavLink({ href, icon, label, badge, onClick }: NavLinkProps) {
   return (
     <Link
       href={href}
       className="group flex items-center space-x-4 p-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 hover:bg-primary hover:shadow-lg"
+      onClick={onClick} // Attach onClick event
     >
       <div className="text-2xl text-accent group-hover:text-background transition-colors relative">
         {icon}

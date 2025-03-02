@@ -70,7 +70,7 @@ const UserProfile = () => {
       </div>
 
       {/* Posts Section */}
-      <section className="w-full space-y-4">
+      <section className="max-w-4xl">
         {userPosts && userPosts.length > 0 ? (
           <ul className="space-y-4">
             {userPosts.map((post) => (

@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ClerkProvider dynamic>
+        <ClerkProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -40,11 +40,11 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <ConvexClientProvider>
-              <div className="flex min-h-screen">
+              <div className="flex min-h-screen items-start">
                 {/* Sidebar */}
                 <SideBar />
                 {/* Main Content */}
-                <main className="flex-1 ml-24 p-6">{children}</main>
+                <main className="flex-1 pt-8">{children}</main>
               </div>
             </ConvexClientProvider>
           </ThemeProvider>

@@ -1,4 +1,5 @@
 // social-network\src\app\follows\page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -57,7 +58,7 @@ export default function FollowsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="grid grid-rows-[auto_1fr_auto] min-h-screen gap-8 px-8 py-8 sm:py-20 sm:px-24 bg-background text-foreground font-sans">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left Side: Search Functionality */}
         <div className="space-y-6">
