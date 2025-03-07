@@ -44,7 +44,7 @@ export default function RootLayout({
                 {/* Sidebar */}
                 <SideBar />
                 {/* Main Content */}
-                <main className="flex-1 pt-8">{children}</main>
+                <main className="flex-1 pt-8 md:pt-0">{children}</main>
               </div>
             </ConvexClientProvider>
           </ThemeProvider>

@@ -27,14 +27,13 @@ const CreatePost = () => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const TITLE_MAX_LENGTH = 50; // Maximum characters for title
-  const DESCRIPTION_MAX_LENGTH = 80; // Maximum characters for description
+  const TITLE_MAX_LENGTH = 50;
+  const DESCRIPTION_MAX_LENGTH = 80;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
 
-      // Ensure only image files are allowed
       if (!selectedFile.type.startsWith("image/")) {
         setError("Only image files are allowed.");
         return;
@@ -74,7 +73,7 @@ const CreatePost = () => {
         creator: currentUser._id,
         title,
         content: storageId,
-        contentUrl: "", // This will be populated in the backend
+        contentUrl: "",
         description,
         createdAt: Date.now(),
       });
@@ -108,8 +107,8 @@ const CreatePost = () => {
       </button>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-background p-6 rounded-lg shadow-lg w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
+          <div className="bg-background p-6 rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Create a Post</h2>
             {error && <p className="text-red-500 mb-4">{error}</p>}
             <input

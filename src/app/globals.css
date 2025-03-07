@@ -64,3 +64,10 @@ body {
   }
 }
 
+@layer base {
+  * {
+    scrollbar-width: thin; /* Makes scrollbar thin */
+    scrollbar-color: #ffaa00 #f7ebd4; /* (thumb color, track color) */
+  }
+}
+
