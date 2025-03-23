@@ -14,9 +14,6 @@ out/
 *.env.test.local
 *.env.production.local
 
-# Convex (add any specific Convex-generated files if needed)
-convex/_generated/
-
 # Build output
 build/
 dist/
