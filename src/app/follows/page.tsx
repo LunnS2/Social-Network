@@ -1,23 +1,13 @@
-// social-network\src\app\follows\page.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
+import Image from "next/image";
 
 export default function FollowsPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
-
-  if (isLoading || !isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   const [userId, setUserId] = useState<Id<"users"> | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const me = useQuery(api.users.getMe);
@@ -37,6 +27,14 @@ export default function FollowsPage() {
       setUserId(me._id);
     }
   }, [me]);
+
+  if (isLoading || !isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const handleFollowToggle = async (
     targetUserId: Id<"users">,
@@ -84,11 +82,14 @@ export default function FollowsPage() {
                             className="flex justify-between items-center p-4 rounded-lg bg-muted transition duration-300 hover:bg-muted/80"
                           >
                             <div className="flex items-center space-x-3">
-                              <img
-                                src={user.image || "/default-avatar.png"}
-                                alt={user.name || "User"}
-                                className="w-12 h-12 rounded-full"
-                              />
+                              <div className="relative w-12 h-12">
+                                <Image
+                                  src={user.image || "/default-avatar.png"}
+                                  alt={user.name || "User"}
+                                  fill
+                                  className="rounded-full object-cover"
+                                />
+                              </div>
                               <span className="font-medium text-foreground">
                                 {user.name || "Unknown User"}
                               </span>
@@ -133,7 +134,7 @@ export default function FollowsPage() {
         <div className="space-y-6">
           {following?.length === 0 ? (
             <p className="text-muted-foreground text-center">
-              You don't follow anyone yet.
+              You don&apos;follow anyone yet.
             </p>
           ) : (
             <ul className="space-y-4">
@@ -145,11 +146,14 @@ export default function FollowsPage() {
                       className="flex justify-between items-center p-4 rounded-lg bg-muted transition duration-300 hover:bg-muted/80"
                     >
                       <div className="flex items-center space-x-3">
-                        <img
-                          src={followedUser.image || "/default-avatar.png"}
-                          alt={followedUser.name || "User"}
-                          className="w-12 h-12 rounded-full"
-                        />
+                        <div className="relative w-12 h-12">
+                          <Image
+                            src={followedUser.image || "/default-avatar.png"}
+                            alt={followedUser.name || "User"}
+                            fill
+                            className="rounded-full object-cover"
+                          />
+                        </div>
                         <span className="font-medium text-foreground">
                           {followedUser.name || "Unknown User"}
                         </span>

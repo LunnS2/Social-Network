@@ -1,5 +1,3 @@
-// social-network\src\app\notifications\page.tsx
-
 "use client";
 
 import React from "react";
@@ -7,16 +5,28 @@ import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 
+interface Notification {
+  _id: Id<"notifications">;
+  _creationTime: number;
+  type: "like" | "comment" | "follow" | "unfollow" | "wallOfFame";
+  actorName: string;
+  postTitle: string | null;
+  postId?: Id<"posts">;
+  actorId?: Id<"users">;
+  userId: Id<"users">;
+  isRead: boolean;
+  createdAt: number;
+}
+
 function Notifications() {
-  // Get authentication status
-    const { isAuthenticated, isLoading } = useConvexAuth();
-  
-    // If authentication is loading or user is not authenticated, return null
-    if (isLoading || !isAuthenticated) {
-      return null;
-    }
+  // All hooks moved to the top
+  const { isAuthenticated, isLoading } = useConvexAuth();
   const notificationData = useQuery(api.notifications.getUserNotifications);
   const markAsRead = useMutation(api.notifications.markNotificationAsRead);
+
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
 
   if (notificationData === undefined) {
     return (
@@ -32,12 +42,12 @@ function Notifications() {
     await markAsRead({ notificationId });
   };
 
-  const getNotificationMessage = (notification: any) => {
+  const getNotificationMessage = (notification: Notification) => {
     switch (notification.type) {
       case "like":
-        return `${notification.actorName} liked your post "${notification.postTitle}"`;
+        return `${notification.actorName} liked your post "${notification.postTitle || ""}"`;
       case "comment":
-        return `${notification.actorName} commented on your post "${notification.postTitle}"`;
+        return `${notification.actorName} commented on your post "${notification.postTitle || ""}"`;
       case "follow":
         return `${notification.actorName} started following you`;
       case "unfollow":
@@ -64,7 +74,7 @@ function Notifications() {
                 {getNotificationMessage(notification)}
               </p>
               <p className="text-sm text-muted-foreground mb-4">
-                {new Date(notification.createdAt).toLocaleString()}
+                {new Date(notification._creationTime).toLocaleString()}
               </p>
               {!notification.isRead && (
                 <button

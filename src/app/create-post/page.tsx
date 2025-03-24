@@ -1,5 +1,3 @@
-// social-network\src\app\create-post\page.tsx
-
 "use client";
 
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
@@ -7,14 +5,10 @@ import React, { useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { Plus } from "lucide-react";
+import Image from "next/image";
 
 const CreatePost = () => {
   const { isAuthenticated, isLoading } = useConvexAuth();
-
-  if (isLoading || !isAuthenticated) {
-    return null;
-  }
-
   const currentUser = useQuery(api.users.getMe);
   const createPost = useMutation(api.posts.createPost);
   const generateUploadUrl = useMutation(api.posts.generateUploadUrl);
@@ -29,6 +23,10 @@ const CreatePost = () => {
 
   const TITLE_MAX_LENGTH = 50;
   const DESCRIPTION_MAX_LENGTH = 80;
+
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -140,11 +138,15 @@ const CreatePost = () => {
               className="w-full p-2 mb-4 border border-border rounded-md"
             />
             {previewUrl && (
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full h-auto rounded-md mb-4"
-              />
+              <div className="relative w-full h-64 mb-4">
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  fill
+                  className="rounded-md object-contain"
+                  unoptimized
+                />
+              </div>
             )}
             <div className="flex justify-end space-x-4">
               <button

@@ -1,5 +1,3 @@
-// social-network\src\app\feed\page.tsx
-
 "use client";
 
 import React, { useMemo } from "react";
@@ -9,15 +7,7 @@ import { Id } from "../../../convex/_generated/dataModel";
 import Post from "@/components/post";
 
 const Feed = () => {
-  // Get authentication status
   const { isAuthenticated, isLoading } = useConvexAuth();
-
-  // If authentication is loading or user is not authenticated, return null
-  if (isLoading || !isAuthenticated) {
-    return null;
-  }
-
-  // Fetch posts, users, and current user
   const posts = useQuery(api.posts.getAllPosts);
   const currentUser = useQuery(api.users.getMe);
   const allUsers = useQuery(api.users.getUsers);
@@ -31,6 +21,11 @@ const Feed = () => {
     );
   }, [allUsers, currentUser]);
 
+  // Get authentication status
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
+
   const handleDelete = async (postId: Id<"posts">) => {
     if (!currentUser) return;
     const confirmed = window.confirm(
@@ -42,7 +37,7 @@ const Feed = () => {
   };
 
   // Show loading state while fetching data
-  if (isLoading || !posts || !currentUser || !allUsers) {
+  if (!posts || !currentUser || !allUsers) {
     return (
       <div className="flex justify-center items-center min-h-screen text-foreground">
         Loading...

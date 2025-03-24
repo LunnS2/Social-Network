@@ -1,5 +1,3 @@
-// social-network\src\components\post.tsx
-
 import React, { useState } from "react";
 import { Id } from "../../convex/_generated/dataModel";
 import { X, MessageCircle, Trash2, UserPlus, UserMinus } from "lucide-react";
@@ -8,19 +6,36 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import Image from "next/image";
 
+interface User {
+  _id: Id<"users">;
+  name?: string;
+  image?: string;
+  // Add other user properties as needed
+}
+
+interface Post {
+  _id: Id<"posts">;
+  _creationTime: number;
+  creator: Id<"users">;
+  title: string;
+  content?: Id<"_storage">;
+  contentUrl?: string;
+  description?: string;
+  createdAt: number;
+}
+
+interface Comment {
+  _id: Id<"comments">;
+  sender: Id<"users">;
+  content: string;
+  postId: Id<"posts">;
+  // Add other comment properties as needed
+}
+
 interface PostProps {
-  post: {
-    _id: Id<"posts">;
-    _creationTime: number;
-    creator: Id<"users">;
-    title: string;
-    content?: Id<"_storage">;
-    contentUrl?: string;
-    description?: string;
-    createdAt: number;
-  };
-  currentUser: any;
-  allUsers: any[];
+  post: Post;
+  currentUser: User | null;
+  allUsers: User[];
   onDelete: (postId: Id<"posts">) => void;
 }
 
@@ -36,7 +51,6 @@ const Post: React.FC<PostProps> = ({
   const createComment = useMutation(api.comments.createComment);
   const deleteComment = useMutation(api.comments.deleteComment);
 
-  // Add these lines for follow functionality
   const isFollowing = useQuery(api.follows.isFollowing, {
     followedId: post.creator,
   });
@@ -63,7 +77,6 @@ const Post: React.FC<PostProps> = ({
     await deleteComment({ commentId });
   };
 
-  // Add this function for follow/unfollow
   const handleFollowToggle = async () => {
     if (isFollowing) {
       await unfollowUser({ followedId: post.creator });
@@ -89,13 +102,15 @@ const Post: React.FC<PostProps> = ({
             {postCreator?.name || "Unknown User"}
           </span>
         </div>
-        <h2 className="text-xl font-semibold text-primary overflow-hidden text-ellipsis">{post.title}</h2>
+        <h2 className="text-xl font-semibold text-primary overflow-hidden text-ellipsis">
+          {post.title}
+        </h2>
 
-        {/* Add follow/unfollow button */}
         {currentUser?._id !== post.creator && (
           <button
             onClick={handleFollowToggle}
             className="ml-4 text-primary hover:text-primary/80 p-2 rounded-full focus:outline-none"
+            aria-label={isFollowing ? "Unfollow user" : "Follow user"}
           >
             {isFollowing ? (
               <UserMinus className="w-5 h-5" />
@@ -110,13 +125,16 @@ const Post: React.FC<PostProps> = ({
         <button
           onClick={() => onDelete(post._id)}
           className="absolute top-2 right-2 text-primary hover:text-primary/80 p-2 rounded-full focus:outline-none"
+          aria-label="Delete post"
         >
           <X className="w-5 h-5" />
         </button>
       )}
 
       {post.description && (
-        <p className="text-muted-foreground mb-4 overflow-hidden text-ellipsis">{post.description}</p>
+        <p className="text-muted-foreground mb-4 overflow-hidden text-ellipsis">
+          {post.description}
+        </p>
       )}
 
       {post.contentUrl && (
@@ -133,10 +151,11 @@ const Post: React.FC<PostProps> = ({
       )}
 
       <div className="flex items-center space-x-4">
-        <LikeButton postId={post._id} userId={currentUser?._id} />
+        <LikeButton postId={post._id} userId={currentUser?._id ?? null} />
         <button
           onClick={() => setShowComments(!showComments)}
           className="flex items-center space-x-1 text-primary hover:text-primary/80"
+          aria-label={showComments ? "Hide comments" : "Show comments"}
         >
           <MessageCircle className="w-5 h-5" />
           <span>{comments?.length || 0}</span>
@@ -146,7 +165,6 @@ const Post: React.FC<PostProps> = ({
         Posted on {new Date(post.createdAt).toLocaleDateString()}
       </p>
 
-      {/* Comments section */}
       {showComments && (
         <div className="mt-4">
           <h3 className="text-lg font-semibold">Comments</h3>
@@ -195,10 +213,12 @@ const Post: React.FC<PostProps> = ({
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add a comment..."
               className="flex-grow border rounded-l-md px-2 py-1"
+              onKeyPress={(e) => e.key === "Enter" && handleCreateComment()}
             />
             <button
               onClick={handleCreateComment}
               className="bg-primary text-white px-4 py-1 rounded-r-md"
+              disabled={!newComment.trim()}
             >
               Post
             </button>

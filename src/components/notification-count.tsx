@@ -1,30 +1,28 @@
-// social-network/src/components/notification-count.tsx
-
 "use client";
 
 import React from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { useConvexAuth } from "convex/react";
 
 function NotificationCount() {
-  // Get authentication status
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const notificationData = useQuery(
+    api.notifications.getUserNotifications,
+    isAuthenticated ? {} : "skip"
+  );
 
-  // If authentication is loading or user is not authenticated, return null
   if (isLoading || !isAuthenticated) {
     return null;
   }
-
-  // Fetch notifications only when the user is authenticated
-  const notificationData = useQuery(api.notifications.getUserNotifications);
 
   if (notificationData === undefined) {
     return null;
   }
 
   const { notifications } = notificationData;
-  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+  const unreadCount = notifications.filter(
+    (notification) => !notification.isRead
+  ).length;
 
   if (unreadCount === 0) {
     return null;

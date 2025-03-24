@@ -1,5 +1,3 @@
-// social-network\src\app\user-profile\page.tsx
-
 "use client";
 
 import React from "react";
@@ -10,28 +8,24 @@ import { Id } from "../../../convex/_generated/dataModel";
 
 const UserProfile = () => {
   const { isAuthenticated, isLoading } = useConvexAuth();
-  if (isLoading || !isAuthenticated) return null;
-
   const currentUser = useQuery(api.users.getMe);
   const userId = currentUser?._id;
-
   const userPosts = useQuery(
     api.posts.getUserPosts,
     userId ? { creator: userId } : "skip"
   );
-
   const followers = useQuery(
     api.follows.getFollowers,
     userId ? { userId } : "skip"
   );
-
   const following = useQuery(
     api.follows.getFollowing,
     userId ? { userId } : "skip"
   );
-
   const allUsers = useQuery(api.users.getUsers);
   const deletePost = useMutation(api.posts.deletePost);
+
+  if (isLoading || !isAuthenticated) return null;
 
   const handleDelete = async (postId: Id<"posts">) => {
     if (!currentUser) return;
@@ -84,7 +78,9 @@ const UserProfile = () => {
             ))}
           </ul>
         ) : (
-          <p className="flex justify-center text-muted-foreground">No posts available.</p>
+          <p className="flex justify-center text-muted-foreground">
+            No posts available.
+          </p>
         )}
       </section>
     </div>
