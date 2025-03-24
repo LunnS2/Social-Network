@@ -24,14 +24,6 @@ interface Post {
   createdAt: number;
 }
 
-interface Comment {
-  _id: Id<"comments">;
-  sender: Id<"users">;
-  content: string;
-  postId: Id<"posts">;
-  // Add other comment properties as needed
-}
-
 interface PostProps {
   post: Post;
   currentUser: User | null;

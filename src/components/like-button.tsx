@@ -8,33 +8,34 @@ import { Heart, HeartOff } from "lucide-react";
 
 interface LikeButtonProps {
   postId: Id<"posts">;
-  userId: Id<"users"> | null; // Updated to accept null
+  userId: Id<"users"> | null;
 }
 
 const LikeButton = ({ postId, userId }: LikeButtonProps) => {
-  const toggleLike = useMutation(api.likes.toggleLike);
+  // Always call hooks unconditionally at the top
   const likesCount = useQuery(api.likes.getLikesCount, { postId }) ?? 0;
-  const hasLiked = userId
-    ? (useQuery(api.likes.hasLikedPost, { postId, userId }) ?? false)
-    : false;
+  const userLikeData =
+    useQuery(api.likes.hasLikedPost, userId ? { postId, userId } : "skip") ??
+    false;
 
-  const [liked, setLiked] = useState(hasLiked);
+  const toggleLike = useMutation(api.likes.toggleLike);
+  const [liked, setLiked] = useState(false);
   const [isDisabled, setIsDisabled] = useState(!userId);
 
   useEffect(() => {
-    setLiked(hasLiked);
+    setLiked(userLikeData);
     setIsDisabled(!userId);
-  }, [hasLiked, userId]);
+  }, [userLikeData, userId]);
 
   const handleLike = async () => {
     if (!userId) return;
 
     try {
-      setLiked(!liked); // Optimistic update
+      setLiked(!liked);
       await toggleLike({ postId, userId });
     } catch (error) {
       console.error("Failed to toggle like:", error);
-      setLiked(hasLiked); // Rollback on error
+      setLiked(userLikeData);
     }
   };
 
