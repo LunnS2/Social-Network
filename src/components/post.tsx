@@ -80,7 +80,7 @@ const Post: React.FC<PostProps> = ({
   return (
     <li className="p-4 border border-border rounded-md relative">
       <div className="flex items-center mb-4">
-        <div className="relative group">
+        <div className="relative">
           <Image
             key={postCreator?.image}
             src={postCreator?.image || "/default-avatar.png"}
