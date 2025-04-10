@@ -31,12 +31,13 @@ const WallOfFame = () => {
         <h2 className="text-xl font-semibold mb-2">{wallPost.title}</h2>
         <p className="text-muted-foreground mb-4">{wallPost.description}</p>
         {wallPost.contentUrl ? (
-          <div className="relative w-full h-64">
+          <div className="mb-4">
             <Image
               src={wallPost.contentUrl}
               alt={wallPost.title}
-              fill
-              className="rounded-md object-cover"
+              width={500}
+              height={300}
+              className="w-full rounded-md"
               onError={(e) => (e.currentTarget.style.display = "none")}
             />
           </div>
