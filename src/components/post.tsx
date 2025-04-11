@@ -10,7 +10,6 @@ interface User {
   _id: Id<"users">;
   name?: string;
   image?: string;
-  // Add other user properties as needed
 }
 
 interface Post {
