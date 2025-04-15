@@ -86,8 +86,13 @@ export default function FollowsPage() {
                                 <Image
                                   src={user.image || "/default-avatar.png"}
                                   alt={user.name || "User"}
-                                  fill
+                                  width={48}
+                                  height={48}
                                   className="rounded-full object-cover"
+                                  unoptimized={!!user.image?.startsWith("http")}
+                                  onError={(e) => {
+                                    e.currentTarget.src = "/default-avatar.png";
+                                  }}
                                 />
                               </div>
                               <span className="font-medium text-foreground">
@@ -134,7 +139,7 @@ export default function FollowsPage() {
         <div className="space-y-6">
           {following?.length === 0 ? (
             <p className="text-muted-foreground text-center">
-              You don&apos;follow anyone yet.
+              You don&apos;t follow anyone yet.
             </p>
           ) : (
             <ul className="space-y-4">
@@ -150,8 +155,13 @@ export default function FollowsPage() {
                           <Image
                             src={followedUser.image || "/default-avatar.png"}
                             alt={followedUser.name || "User"}
-                            fill
+                            width={48}
+                            height={48}
                             className="rounded-full object-cover"
+                            unoptimized={!!followedUser.image?.startsWith("http")}
+                            onError={(e) => {
+                              e.currentTarget.src = "/default-avatar.png";
+                            }}
                           />
                         </div>
                         <span className="font-medium text-foreground">
