@@ -20,7 +20,10 @@ export default function Home() {
           Creativity Meets Competition
         </h2>
         <p className="text-muted-foreground text-lg leading-relaxed">
-          Welcome to <span className="text-primary font-bold">DiceFeed</span>, a dynamic social network where you can share, explore, and compete with unique posts. Each week brings new excitement and fresh starts.
+          Welcome to <span className="text-primary font-bold">DiceFeed</span>, a
+          dynamic social network where you can share, explore, and compete with
+          unique posts. Each week brings new excitement and fresh starts, where
+          only one post can make it to the wall of fame. Good luck!
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <SignInButton mode="redirect">
